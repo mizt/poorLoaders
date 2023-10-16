@@ -47,9 +47,9 @@
 						if(new TextDecoder().decode(U8.slice(4*4,4*4+4))==="JSON") {
 							const json = JSON.parse(new TextDecoder().decode(U8.slice(4*5,4*5+size)));
 														
-							if(new TextDecoder().decode(U8.slice(4*5+jsonSize+4*1,4*5+size+4*1+3))==="BIN") {
+							if(new TextDecoder().decode(U8.slice(4*5+size+4*1,4*5+size+4*1+3))==="BIN") {
 								
-								const offset = 4*5+jsonSize+4*2;
+								const offset = 4*5+size+4*2;
 								
 								const bufferViews = json["bufferViews"];
 								
