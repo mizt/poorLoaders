@@ -53,10 +53,9 @@
 								
 								const bufferViews = json["bufferViews"];
 								
-								const F32 = new Float32Array(fr.result);
-
-								const v = F32.slice((offset+bufferViews[0]["byteOffset"])>>2,(offset+bufferViews[0]["byteOffset"]+bufferViews[0]["byteLength"])>>2);
-								const vt = F32.slice((offset+bufferViews[1]["byteOffset"])>>2,(offset+bufferViews[1]["byteOffset"]+bufferViews[1]["byteLength"])>>2);
+								const F32 = (new Float32Array(fr.result)).slice(offset>>2);
+								const v = F32.slice((bufferViews[0]["byteOffset"])>>2,(bufferViews[0]["byteOffset"]+bufferViews[0]["byteLength"])>>2);
+								const vt = F32.slice((bufferViews[1]["byteOffset"])>>2,(bufferViews[1]["byteOffset"]+bufferViews[1]["byteLength"])>>2);
 								
 								const bytes = bufferViews[2]["byteLength"]/json["accessors"][2]["count"];
 										
