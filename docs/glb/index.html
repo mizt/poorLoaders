@@ -132,7 +132,7 @@
 											let tid = 0;
 											window.addEventListener("resize",(e)=>{
 												if(tid) clearTimeout(tid);
-												tid = setTimeout((e)=>resize(),15);
+												tid = setTimeout((e)=>resize(),1000/60);
 											});
 											resize();
 											
@@ -151,7 +151,7 @@
 												gl.drawElements(gl.TRIANGLES,bufferInfo.numElements,(bytes==4)?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT,0);
 											};
 											
-											setInterval(draw,33);
+											setInterval(draw,1000/30);
 											draw();
 											
 											document.body.appendChild(div);
@@ -167,7 +167,6 @@
 			}).catch(error => {
 				console.error(error);
 			});
-			
 			
 		</script>
 	</body>
