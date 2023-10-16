@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<meta charset="utf-8">
+		<meta name="robots" content="noindex, nofollow">
+		<link rel="icon" href="data:;base64,=">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			
+			* {
+				margin:0;
+				padding:0;
+				-webkit-user-select:none;
+				-moz-user-select:none;
+				-ms-user-select:none;
+			}
+			
+			body {
+				background:#000;
+				width:100dvw;
+				height:100dvh;
+				overflow:hidden;
+			}
+			
+			input {
+				background:#F00;
+				border:none;
+				width:17px;
+				height:17px;
+				border-radius:50%;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<script src="./twgl.min.js"></script>
+		<script>
+			
+			fetch("./mesh.obj").then(response=>response.text()).then(data=>{
+				
+				const list = data.split(/\r\n|\n|\r/);
+				
+				const v = [];
+				const vt = [];
+				const f = [];
+				
+				for(var n=0; n<list.length; n++) {
+					
+					const tmp = list[n];
+					
+					if(tmp[0]==="v") {
+						if(tmp[1]===" ") {
+							const arr = tmp.split(/[\s]+/);
+							if(arr.length===4) { // Supports only xyz
+								v.push(+arr[1]);
+								v.push(+arr[2]);
+								v.push(+arr[3]);
+							}
+						}
+						else if(tmp[1]==="t") {
+							const arr = tmp.split(/[\s]+/);
+							if(arr.length===3) {
+								vt.push(+arr[1]);
+								vt.push(+arr[2]);
+							}
+						}
+					}
+					else if(tmp[0]==="f") {
+						const arr = tmp.split(/[\s]+/);
+						if(arr.length===4) { // Supports only polygons
+							f.push((+arr[1].split("/")[0])-1);
+							f.push((+arr[2].split("/")[0])-1);
+							f.push((+arr[3].split("/")[0])-1);
+						}
+					}
+				}
+				
+				if(v.length&&vt.length&&f.length) {
+					
+					const width = 1920;
+					const height = 1080;
+					
+					const canvas = document.createElement("canvas");
+					Object.assign(canvas,{width:width,height:height});
+					Object.assign(canvas.style,{"vertical-align":"top","outline":"1px solid #222"});
+					
+					const div = document.createElement("div");
+					Object.assign(div.style,{"display":"flex","width":"100vw","height":"100dvh"});
+					div.appendChild(canvas);
+					
+					const gl = canvas.getContext("experimental-webgl",{antialias:false});
+					gl.getExtension("OES_element_index_uint");
+					
+					const vs = "uniform mat4 u_projectionMatrix; attribute vec2 texcoord; varying vec2 v_texCoord; attribute vec3 position; void main() { v_texCoord = texcoord; gl_Position = u_projectionMatrix*(vec4(position,1.0)+vec4(0.0,0.0,-1.5,0.0)); }";
+					const fs = "precision mediump float; varying vec2 v_texCoord; uniform sampler2D u_texture; void main() { gl_FragColor = texture2D(u_texture,vec2(v_texCoord.x,1.0-v_texCoord.y)); }";
+					
+					const program = twgl.createProgramFromSources(gl,[vs,fs]);
+					if(program) {
+						
+						const programInfo = twgl.createProgramInfoFromProgram(gl,program);
+						const bufferInfo = twgl.createBufferInfoFromArrays(gl,{
+							position:{numComponents:3,data:v},
+							texcoord:{numComponents:2,data:vt},
+							indices: {numComponents:3,data:new Uint32Array(f)}
+						});
+						
+						const fov = 60;
+						const near = 0.01;
+						const far = 1000.0;
+						
+						const y = 1.0/Math.tan((fov*0.5)*(Math.PI/180.0));
+						const x = y*(height/width);
+						
+						const uniforms = {
+							u_texture:twgl.createTexture(gl,{
+								min:gl.LINEAR,
+								mag:gl.LINEAR,
+								format:gl.RGBA,
+								src:"texture.png",
+							}),
+							u_projectionMatrix:[
+								x,0,0,0,
+								0,y,0,0,0,
+								0,-((far+near)/(far-near)),-1,
+								0,0,-((2.0*far*near)/(far-near)),0
+							]
+						};
+						
+						const resize = (e)=>{
+							const sx = window.innerWidth/width;
+							const sy = window.innerHeight/height;
+							if(sx<sy) {
+								Object.assign(canvas.style,{"width":"100dvw","height":"auto","margin":"auto 0"});
+							}
+							else {
+								Object.assign(canvas.style,{"width":"auto","height":"100dvh","margin":"0 auto"});
+							}
+						}
+						let tid = 0;
+						window.addEventListener("resize",(e)=>{
+							if(tid) clearTimeout(tid);
+							tid = setTimeout((e)=>resize(),15);
+						});
+						resize();
+						
+						const draw = ()=>{
+							gl.viewport(0,0,width,height);
+							gl.enable(gl.DEPTH_TEST);
+							
+							gl.clearColor(0,0,0,1);
+							gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+							
+							gl.useProgram(program);
+							
+							twgl.setBuffersAndAttributes(gl,programInfo,bufferInfo);
+							twgl.setUniforms(programInfo,uniforms);
+							
+							gl.drawElements(gl.TRIANGLES,bufferInfo.numElements,gl.UNSIGNED_INT,0);
+						};
+						
+						setInterval(draw,33);
+						draw();
+						
+						document.body.appendChild(div);
+
+						
+					}
+				}
+				else {
+					
+					console.log(v.length);
+					console.log(vt.length);
+					console.log(f.length);
+				}
+				
+			}).catch(error => {
+				console.error(error);
+			});
+			
+			
+		</script>
+	</body>
+</html>
