@@ -103,6 +103,8 @@
 																						
 											const image = U8.slice(offset+bufferViews[3]["byteOffset"],offset+bufferViews[3]["byteOffset"]+bufferViews[3]["byteLength"]);
 											
+											twgl.setDefaults({textureColor:[0,0,0,0]});
+
 											const uniforms = {
 												u_texture:twgl.createTexture(gl,{
 													min:gl.LINEAR,

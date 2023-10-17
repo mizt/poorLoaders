@@ -104,6 +104,8 @@
 						const y = 1.0/Math.tan((fov*0.5)*(Math.PI/180.0));
 						const x = y*(height/width);
 						
+						twgl.setDefaults({textureColor:[0,0,0,0]});
+
 						const uniforms = {
 							u_texture:twgl.createTexture(gl,{
 								min:gl.LINEAR,
